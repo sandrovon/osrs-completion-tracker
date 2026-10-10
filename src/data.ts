@@ -21,5 +21,5 @@ const allQuests:Goal[]=QuestList.filter(name=>!starterQuestNames.has(normalize(n
 const allMiniquests:Goal[]=MiniQuestList.filter(name=>!starterQuestNames.has(normalize(name))).map((name,index)=>({id:"miniquest-full-"+index,title:name,category:"Miniquest",minutes:30,wiki:wiki(name)}));
 const allCombat:Goal[]=ALL_COMBAT_ACHIEVEMENT_TASKS.map(task=>({id:"combat-task-"+task.id,title:task.name,category:"Combat",tier:task.tier,minutes:30,wiki:wiki("Combat_Achievements"),note:task.description}));
 export const goals:Goal[]=[...starterGoals.filter(g=>g.category!=="Combat"),...allQuests,...allMiniquests,...allCombat];
-export const skills=["Attack","Defence","Strength","Hitpoints","Ranged","Prayer","Magic","Cooking","Woodcutting","Fletching","Fishing","Firemaking","Crafting","Smithing","Mining","Herblore","Agility","Thieving","Slayer","Farming","Runecraft","Hunter","Construction"];
+export const skills=["Attack","Defence","Strength","Hitpoints","Ranged","Prayer","Magic","Cooking","Woodcutting","Fletching","Fishing","Firemaking","Crafting","Smithing","Mining","Herblore","Agility","Thieving","Slayer","Farming","Runecraft","Hunter","Construction","Sailing"];
 export const skillWiki=(s:string)=>wiki(s==="Runecraft"?"Runecraft":s);
