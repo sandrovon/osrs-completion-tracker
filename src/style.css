@@ -46,3 +46,5 @@ h2,h3{color:#ebc780}
 .skillXp{grid-column:1/-1;color:#c9b17e;font-size:11px}.task .check.checked{cursor:pointer}.task .pill.complete{border-color:#9b7543;color:#f3d49a}
 
 .previewNav{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:0 0 18px}.previewNav strong{color:#f2d58d;font-size:13px}.previewNav .secondary{padding:8px 12px}.previewNav button:disabled,.task button:disabled{opacity:.48;cursor:not-allowed}
+
+.skillTraining{margin-top:22px;padding-top:18px;border-top:1px solid #82633d}.skillTraining h3{margin-bottom:7px}.skillTraining .task{margin-top:10px}.skillTraining .skillIcon{width:27px;height:27px;object-fit:contain}
