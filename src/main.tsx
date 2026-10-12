@@ -42,7 +42,21 @@ const completed=new Set(store.done);
 const finished=goals.filter(g=>completed.has(g.id)).length;
 const remaining=goals.filter(g=>!completed.has(g.id));
 const eligible=remaining.filter(g=>(g.requires||[]).every(id=>completed.has(id)));
-const buildPlan=(done:string[],hours:number):string[]=>{const completedSet=new Set(done);const eligibleGoals=goals.filter(g=>!completedSet.has(g.id)&&(g.requires||[]).every(id=>completedSet.has(id)));const sorted=[...eligibleGoals].sort((a,b)=>{const score=(g:Goal)=>g.category==="Quest"?0:g.category==="Miniquest"?1:g.category==="Diary"?2:3;return (optimalRank(a.title)-optimalRank(b.title))||score(a)-score(b)||a.minutes-b.minutes});let used=0;const picked:string[]=[];for(const g of sorted){if(!picked.includes(g.id)&&used+g.minutes<=hours*60){picked.push(g.id);used+=g.minutes}if(picked.length>=7)break}return uniqueIds(picked.length?picked:sorted.slice(0,1).map(g=>g.id))};
+const buildPlan=(done:string[],hours:number):string[]=>{
+ const completedSet=new Set(done);
+ const eligibleGoals=goals.filter(g=>!completedSet.has(g.id)&&(g.requires||[]).every(id=>completedSet.has(id)));
+ const categories:Category[]=["Quest","Diary","Miniquest","Combat"];
+ const pools=Object.fromEntries(categories.map(cat=>[cat,eligibleGoals.filter(g=>g.category===cat).sort((a,b)=>cat==="Quest"?optimalRank(a.title)-optimalRank(b.title)||a.minutes-b.minutes:a.minutes-b.minutes)])) as Record<Category,Goal[]>;
+ // Rotate the first category each day to avoid a quest-first daily routine.
+ const rotation=completedSet.size%categories.length;
+ const order=[...categories.slice(rotation),...categories.slice(0,rotation)];
+ const picked:string[]=[];let used=0;const max=Math.min(7,Math.max(3,Math.ceil(hours*2.5)));
+ const add=(g:Goal)=>{if(picked.includes(g.id)||used+g.minutes>hours*60)return false;picked.push(g.id);used+=g.minutes;return true};
+ // Take at most one quest before making room for other categories.
+ for(const cat of order){const candidate=pools[cat].find(g=>!picked.includes(g.id)&&used+g.minutes<=hours*60);if(candidate)add(candidate)}
+ while(picked.length<max){let added=false;for(const cat of order){if(cat==="Quest"&&picked.filter(id=>goals.find(g=>g.id===id)?.category==="Quest").length>=Math.max(1,Math.ceil(max/3)))continue;const candidate=pools[cat].find(g=>!picked.includes(g.id)&&used+g.minutes<=hours*60);if(candidate){add(candidate);added=true}if(picked.length>=max)break}if(!added)break}
+ return uniqueIds(picked.length?picked:eligibleGoals.slice(0,1).map(g=>g.id));
+};
 useEffect(()=>{if(store.planIds.length===0&&goals.some(g=>!store.done.includes(g.id))){setStore(p=>p.planIds.length?p:{...p,planIds:buildPlan(p.done,p.hours),dailyDone:[]})}},[store.planIds.length,store.done,store.hours]);
 const recommended=uniqueIds(store.planIds).map(id=>goals.find(g=>g.id===id)).filter((g):g is Goal=>Boolean(g));
 const shownDay=previewDay!==null&&previewDay>=store.planDay?previewDay:store.planDay;
