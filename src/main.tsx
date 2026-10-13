@@ -101,7 +101,7 @@ async function syncWikiQuests(){
   if(status&&typeof status==="object"){const obj=status as Record<string,unknown>;return finished(obj.status??obj.state??obj.value)}
   return false;
  };
- const entries=Array.isArray(data.quests)?data.quests.map((item:unknown)=>{const q=item as Record<string,unknown>;return [String(q.name??q.title??""),q.status??q.state] as const}):Object.entries(data.quests);
+ const entries:ReadonlyArray<readonly [string,unknown]>=Array.isArray(data.quests)?data.quests.map((item:unknown)=>{const q=item as Record<string,unknown>;return [String(q.name??q.title??""),q.status??q.state] as const}):Object.entries(data.quests);
  const names=new Set(entries.filter(([,status])=>finished(status)).map(([name])=>normQuest(name)));
  const aliases:Record<string,string>={};
  const matched=goals.filter(g=>(g.category==="Quest"||g.category==="Miniquest")&&names.has(aliases[normQuest(g.title)]??normQuest(g.title)));
