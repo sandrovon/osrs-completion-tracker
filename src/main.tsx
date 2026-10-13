@@ -95,10 +95,19 @@ async function syncWikiQuests(){
  if(!response.ok)throw Error("WikiSync unavailable. Enable the WikiSync RuneLite plugin and log in.");
  const data=await response.json();
  if(!data.quests||typeof data.quests!=="object")throw Error("No WikiSync quest data found.");
- const names=new Set(Object.entries(data.quests).filter(([,status])=>status===2||status==="FINISHED").map(([name])=>normQuest(name)));
- const matched=goals.filter(g=>(g.category==="Quest"||g.category==="Miniquest")&&names.has(normQuest(g.title)));
+ const finished=(status:unknown):boolean=>{
+  if(status===2||status===3)return true;
+  if(typeof status==="string")return ["FINISHED","COMPLETED","COMPLETE","2","3"].includes(status.toUpperCase());
+  if(status&&typeof status==="object"){const obj=status as Record<string,unknown>;return finished(obj.status??obj.state??obj.value)}
+  return false;
+ };
+ const entries=Array.isArray(data.quests)?data.quests.map((item:unknown)=>{const q=item as Record<string,unknown>;return [String(q.name??q.title??""),q.status??q.state] as const}):Object.entries(data.quests);
+ const names=new Set(entries.filter(([,status])=>finished(status)).map(([name])=>normQuest(name)));
+ const aliases:Record<string,string>={"romeoandjuliet":"romeojuliet","blackknightsfortress":"blackknightsfortress","fairytaleigrowingpains":"fairytaleigrowingpains"};
+ const matched=goals.filter(g=>(g.category==="Quest"||g.category==="Miniquest")&&names.has(aliases[normQuest(g.title)]??normQuest(g.title)));
  setStore(p=>({...p,done:uniqueIds([...p.done,...matched.map(g=>g.id)])}));
- setSyncMessage("Imported "+matched.length+" completed quest entries. Existing completions preserved.");
+ const unmatched=[...names].filter(name=>!matched.some(g=>normQuest(g.title)===name));
+ setSyncMessage("WikiSync reported "+names.size+" finished quests; matched "+matched.length+" tracker tasks. "+(unmatched.length?"Unmatched quest names: "+unmatched.slice(0,15).join(", ")+(unmatched.length>15?" …":""):"All reported quest names matched.")+" Existing progress preserved.");
  }catch(e){setSyncMessage((e as Error).message+" No progress was changed.")}
  finally{setSyncing(false)}
 }
